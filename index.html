@@ -176,9 +176,20 @@ const shut=[...document.querySelectorAll('main,.nav,#snd')];shut.forEach(e=>{e.i
 const strs=[...gate.querySelectorAll('.gstr')],notes=[130.81,196,261.63,277.18,311.13,349.23,392,415.3],gn=document.getElementById('gn'),row=document.getElementById('gateRow'),played=new Set(),lastT=[],cache={};
 let sc,master,unlocked=false,done=false,last=-1;
 const ctx=()=>{if(!sc){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;sc=new C();master=sc.createGain();master.gain.value=.9;master.connect(sc.destination)}return sc};
-const buf=f=>{if(cache[f])return cache[f];const sr=sc.sampleRate,n=Math.floor(sr*2.6),L=Math.max(2,Math.round(sr/f)),b=sc.createBuffer(1,n,sr),d=b.getChannelData(0),line=new Float32Array(L);for(let i=0;i<L;i++)line[i]=Math.random()*2-1;let p=0;for(let i=0;i<n;i++){const j=(p+1)%L;d[i]=Math.tanh(line[p]*1.7)*.55;line[p]=(line[p]+line[j])*.5*.9993;p=j}return cache[f]=b};
-const sound=(i,v)=>{const c=sc;if(!c||c.state!=='running')return;const s=c.createBufferSource(),g=c.createGain();s.buffer=buf(notes[i]);g.gain.setValueAtTime(v||.9,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+2.6);s.connect(g);g.connect(master);s.start()};
-const unlock=()=>{if(unlocked)return;unlocked=true;if(want){a.muted=true;a.play().catch(()=>{})}};
+/* audible sitar-style string: a short noisy pluck feeding bright harmonics and a resonant body. No external audio files are needed. */
+const sound=(i,v)=>{const c=sc;if(!c||c.state!=='running')return;const now=c.currentTime,f=notes[i],level=v||1;
+const out=c.createGain(),body=c.createBiquadFilter(),pluck=c.createBiquadFilter(),osc=c.createOscillator(),osc2=c.createOscillator(),osc3=c.createOscillator(),ng=c.createBufferSource(),ngf=c.createBiquadFilter(),ngg=c.createGain();
+out.gain.setValueAtTime(.0001,now);out.gain.exponentialRampToValueAtTime(.34*level,now+.008);out.gain.exponentialRampToValueAtTime(.0001,now+2.2);
+body.type='lowpass';body.frequency.setValueAtTime(Math.min(4200,f*8),now);body.Q.value=.7;
+pluck.type='highpass';pluck.frequency.value=Math.max(650,f*2.2);pluck.Q.value=.7;
+osc.type='triangle';osc.frequency.setValueAtTime(f,now);osc.detune.setValueAtTime(-3,now);
+osc2.type='sine';osc2.frequency.setValueAtTime(f*2.01,now);osc2.detune.setValueAtTime(4,now);
+osc3.type='sine';osc3.frequency.setValueAtTime(f*3.01,now);osc3.detune.setValueAtTime(-5,now);
+osc2.connect(body);osc3.connect(body);osc.connect(body);body.connect(out);out.connect(master);
+const nb=c.createBuffer(1,Math.floor(c.sampleRate*.055),c.sampleRate),nd=nb.getChannelData(0);for(let k=0;k<nd.length;k++)nd[k]=(Math.random()*2-1)*Math.pow(1-k/nd.length,2);
+ng.buffer=nb;ngf.type='bandpass';ngf.frequency.value=Math.min(7000,f*3.8);ngf.Q.value=.65;ngg.gain.setValueAtTime(.32*level,now);ngg.gain.exponentialRampToValueAtTime(.0001,now+.055);ng.connect(ngf);ngf.connect(ngg);ngg.connect(master);
+osc.start(now);osc2.start(now);osc3.start(now);ng.start(now);osc.stop(now+2.25);osc2.stop(now+2.25);osc3.stop(now+2.25);ng.stop(now+.06)};
+const unlock=()=>{if(unlocked)return;unlocked=true;const c=ctx();if(c&&c.state!=='running')c.resume().catch(()=>{});if(want){a.muted=true;a.play().catch(()=>{})}};
 const startMusic=()=>{if(!want)return;try{a.currentTime=0}catch(e){}a.muted=false;a.volume=0;a.play().then(()=>{ui(true);let v=0;const t=setInterval(()=>{v=Math.min(.45,v+.03);a.volume=v;if(v>=.45)clearInterval(t)},60)}).catch(()=>{ui(false);starter()})};
 const finish=m=>{if(done)return;done=true;if(m)startMusic();root.classList.add('gate-go');gate.classList.add('open');shut.forEach(e=>{e.inert=false});try{sessionStorage.setItem('entered','1')}catch(e){}setTimeout(()=>{gate.remove();root.classList.remove('gate-on','gate-go')},1500)};
 const go=(i,strong)=>{if(i<0||done)return;const t=performance.now();if(t-(lastT[i]||0)<90)return;lastT[i]=t;
