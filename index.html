@@ -72,11 +72,20 @@
 .pod-logo{width:clamp(130px,16vw,230px);height:auto;mix-blend-mode:multiply}
 @media(max-width:850px){.podcast{grid-template-columns:1fr}.pod-logo{width:150px}}
 
-/* podcast: its own section, own colour (marigold) */
-.podcastsec{background:#d9a441;color:#292a2a;padding:11vh 0 12vh}
+/* podcast: its own section, plum */
+.podcastsec{background:#251f24;color:#e9e4dc;padding:11vh 0 12vh}
 .podcastsec .podcast{margin:0;padding:0;border:0}
-.podcastsec .pod-copy .copy{color:#2d2a22}
-.podcastsec .pod-btn:hover{background:#292a2a;color:#d9a441}
+.podcastsec .pod-copy .copy{color:#cfc8bd}
+.podcastsec .pod-btn:hover{background:#e9e4dc;color:#251f24}
+.podcastsec .pod-logo{mix-blend-mode:normal}
+
+/* on the walls: same sand as A Rainbow Collective, since the posters are ARC's past shows */
+.posters{background:#d8caba;color:#292a2a}
+.posters .section-head{border-color:rgba(42,43,42,.3)}
+.poster-controls button{border-color:#58544d}
+.poster-controls button:hover{background:#292a2a;color:#d8caba}
+.poster-track{scrollbar-color:#8d8170 transparent}.poster-track::-webkit-scrollbar-thumb{background:#8d8170}
+.poster-track img{background:#c9b9a6}
 
 /* contact: what to write in about */
 .contact h2{margin-bottom:4vh}
